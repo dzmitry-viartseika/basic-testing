@@ -1,4 +1,10 @@
-import { BankAccount, InsufficientFundsError, TransferFailedError, SynchronizationFailedError } from './index';
+import {
+  BankAccount,
+  InsufficientFundsError,
+  TransferFailedError,
+  SynchronizationFailedError,
+  getBankAccount
+} from './index';
 
 const INITIAL_BALANCE = 100;
 const WITH_DRAW_AMOUNT = 200;
@@ -55,12 +61,18 @@ describe('BankAccount', () => {
     const account = new BankAccount(100);
     const balance = await account.fetchBalance();
     expect(typeof balance).toBe('number');
+    expect(balance).not.toBeNull();
   });
 
   test('should set new balance if fetchBalance returned number', async () => {
-    const account = new BankAccount(100);
+    const newBalance = 200;
+    const account = getBankAccount(INITIAL_BALANCE);
+
+    jest.spyOn(account, 'fetchBalance').mockResolvedValue(newBalance);
+
     await account.synchronizeBalance();
-    expect(account.getBalance()).toBeGreaterThan(0);
+
+    expect(account.getBalance()).toEqual(newBalance);
   });
 
   test('should throw SynchronizationFailedError if fetchBalance returned null', async () => {
