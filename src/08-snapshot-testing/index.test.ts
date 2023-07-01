@@ -1,7 +1,7 @@
 import { generateLinkedList } from './index';
 
 describe('generateLinkedList', () => {
-  test.only('should generate linked list from values 1', () => {
+  test('should generate linked list from values 1', () => {
     const elements = [1, 2, 3];
 
     const result = generateLinkedList(elements);
@@ -18,9 +18,12 @@ describe('generateLinkedList', () => {
     });
   });
 
-  test.skip('should generate linked list from values 2', () => {
+  test('should generate linked list from values 2', () => {
     const elements = ['a', 'b', 'c'];
-    const expectedLinkedList = {
+
+    const result = generateLinkedList(elements);
+
+    expect(result).toStrictEqual({
       value: 'a',
       next: {
         value: 'b',
@@ -29,10 +32,6 @@ describe('generateLinkedList', () => {
           next: null
         }
       }
-    };
-
-    const result = generateLinkedList(elements);
-
-    expect(result).toStrictEqual(expectedLinkedList);
+    });
   });
 });

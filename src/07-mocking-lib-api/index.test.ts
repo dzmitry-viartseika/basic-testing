@@ -1,37 +1,61 @@
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { throttledGetDataFromApi } from './index';
 
 jest.mock('axios');
+jest.mock('lodash', () => ({
+  throttle: jest.fn((fn) => fn),
+}));
 
-describe.skip('throttledGetDataFromApi', () => {
+describe('throttledGetDataFromApi', () => {
   afterEach(() => {
-    jest.clearAllMocks();
     jest.useRealTimers();
+    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   test('should create instance with provided base url', async () => {
-    const axiosCreateMock = jest.spyOn(axios, 'create');
-    await throttledGetDataFromApi('/');
-    expect(axiosCreateMock).toHaveBeenCalledWith({
+    const expectedUrl = 'https://jsonplaceholder.typicode.com/posts/1';
+
+    const axiosClientMock: Partial<AxiosInstance> = {
+      get: jest.fn().mockResolvedValueOnce({ data: {} }),
+    };
+
+    axios.create = jest.fn().mockReturnValue(axiosClientMock as AxiosInstance);
+
+    await throttledGetDataFromApi(expectedUrl);
+
+    expect(axios.create).toHaveBeenCalledWith({
       baseURL: 'https://jsonplaceholder.typicode.com',
     });
+
+    expect(axiosClientMock.get).toHaveBeenCalledWith(expectedUrl);
   });
 
   test('should perform request to correct provided url', async () => {
-    jest.useFakeTimers();
-    const axiosGetMock = jest.spyOn(axios, 'get').mockResolvedValueOnce({ data: 'test' });
-    const resultPromise = throttledGetDataFromApi('/posts');
-    jest.runAllTimers();
-    const result = await resultPromise;
-    expect(axiosGetMock).toHaveBeenCalledWith('/posts');
-    expect(result).toBe('test');
+    const mockResponseData = { id: 1, title: 'Test Post' };
+    const axiosGetSpy = jest.spyOn(axios, 'get').mockResolvedValueOnce({ data: mockResponseData });
+
+    const mockAxiosInstance: AxiosInstance = { get: axiosGetSpy } as any;
+    jest.spyOn(axios, 'create').mockReturnValueOnce(mockAxiosInstance);
+
+    const relativePath = '/posts/1';
+    await throttledGetDataFromApi(relativePath);
+
+    expect(axiosGetSpy).toHaveBeenCalledTimes(1);
+    expect(axiosGetSpy).toHaveBeenCalledWith(`${relativePath}`);
   });
 
   test('should return response data', async () => {
-    jest.useFakeTimers();
-    const resultPromise = throttledGetDataFromApi('/posts');
-    jest.runAllTimers();
-    const result = await resultPromise;
-    expect(result).toBe('test');
+    const mockResponseData = { id: 1, title: 'Test Post' };
+    const axiosClient: AxiosInstance = {
+      get: jest.fn().mockResolvedValueOnce({ data: mockResponseData }),
+    } as any;
+
+    jest.spyOn(axios, 'create').mockReturnValueOnce(axiosClient);
+
+    const relativePath = '/posts/1';
+    const response = await throttledGetDataFromApi(relativePath);
+
+    expect(response).toEqual(mockResponseData);
   });
 });

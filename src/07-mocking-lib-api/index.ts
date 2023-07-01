@@ -1,10 +1,10 @@
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { throttle } from 'lodash';
 
 export const THROTTLE_TIME = 5000;
 
 const getDataFromApi = async (relativePath: string) => {
-  const axiosClient = axios.create({
+  const axiosClient: AxiosInstance = axios.create({
     baseURL: 'https://jsonplaceholder.typicode.com',
   });
 
